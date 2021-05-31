@@ -1,0 +1,47 @@
+<html>
+	<head></head>
+	<body>
+		<ons-button id="btnRecordSound" modifier="large" disable-auto-styling>Hold to record</ons-button>
+
+<h1>HEllo world</h1>
+		<script>
+let soundRecord = '';
+let isRecording = false;
+
+function setRecordSoundButton() {
+    $('#btnRecordSound').on('touchstart touchend', (event) => {
+        if (event.type == 'touchstart') {
+            startSoundRecording();
+        } else if (event.type == 'touchend') {
+            stopSoundRecording();
+        }
+    });
+}
+
+function startSoundRecording() {
+    soundRecord = new Media(/*some file path here*/, () => {
+        // success function
+    });
+    soundRecord.startRecord();
+    isRecording = true;
+    setTimeout(favoChat.stopSoundRecording, 30000);
+}
+
+function stopSoundRecording() {
+    if (isRecording) {
+        isRecording = false;
+        soundRecord.stopRecord();
+    }
+}	
+</script>
+
+
+
+
+
+	</body>	
+
+
+
+</html>
+
