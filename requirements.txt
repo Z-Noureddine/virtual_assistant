@@ -43,6 +43,7 @@ incremental==21.3.0
 ipykernel==5.4.3
 ipython==7.16.1
 ipython-genutils==0.2.0
+pysndfile==1.4.3
 jdcal==1.4.1
 jedi==0.18.0
 joblib==1.0.1
