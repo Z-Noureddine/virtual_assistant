@@ -4,6 +4,7 @@ from django.conf.urls import url
 
 urlpatterns = [
     path('', views.hello, name='hello'),
+    path('test', views.test, name='test'),
     url('responde_to_seq/',views.responde_to_seq),
     path('api/', views.welcome),
 ]

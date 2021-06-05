@@ -10,7 +10,7 @@ from django.core import serializers
 from django.conf import settings
 import json
 import os,numpy
-import pathlib
+import pathlib,random
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -20,6 +20,7 @@ from tensorflow.keras import models
 from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras.backend import set_session
 import librosa
+import soundfile as sf
 
 max_length=29661
 from tensorflow.python.keras.backend import set_session
@@ -31,15 +32,14 @@ graph = tf.get_default_graph()
 # IMPORTANT: models have to be loaded AFTER SETTING THE SESSION for keras! 
 # Otherwise, their weights will be unavailable in the threads after the session there has been set
 set_session(sess)
-model = load_model('/home/geek/Music/model_saved')
+model = load_model('./model_saved')
 
-def predict_file(array):
+def predict_file(file):
 	global graph
 	global sess
-	set_session(sess)
-	x=np.array(array)
+	x,_ = librosa.load(file, sr=3000)
 	x=(x-min(x))/(max(x)-min(x))
-	file=x.astype(numpy.float16)
+	file= x.astype(numpy.float16)
 	file=np.pad(file,(0,max_length-len(file)),'constant').reshape(1,max_length)
 	file=file.reshape(1,max_length,1)
 	with graph.as_default():
@@ -51,6 +51,8 @@ def predict_file(array):
 # Create your views here.
 def hello(request):
     return render(request, 'hello.html', {})
+def test(request):
+    return render(request, 'index.html', {})
 '''
 
 from django.core.files.storage import FileSystemStorage
@@ -75,10 +77,16 @@ class GetFile(View):
 def responde_to_seq(seq):
 	response=json.loads(seq.body)
 	return JsonResponse("response:"+response,safe=False)
-@api_view(["GET"])
+@api_view(["POST"])
 def welcome(request):
 	params = dict(request.query_params)
+	filename="audio_{}".format(random.randint(0,5000))
+	f=open(filename+'.webm','wb')
+	f.write(request.FILES['audio'].read())
+	f.close()
+	os.system('ffmpeg -i "{}.webm" -vn "{}.wav"'.format(filename,filename))
 
-	#content = {"message": 'AAAA'+str(predict_file(np.array(params['seq'].split('_'))))+'AAA'}
-	content = {"response": str(predict_file(np.array(list(map(lambda x: int(x), params['seq'][0].split('_'))))))}
+	prediction=predict_file(filename+'.wav')
+	content = {"response": str(prediction)}
+	#os.system('rm {}*'.format(filename))
 	return JsonResponse(content)
