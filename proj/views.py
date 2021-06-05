@@ -20,7 +20,6 @@ from tensorflow.keras import models
 from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras.backend import set_session
 import librosa
-import soundfile as sf
 
 max_length=29661
 from tensorflow.python.keras.backend import set_session
