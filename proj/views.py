@@ -32,7 +32,28 @@ graph = tf.get_default_graph()
 # IMPORTANT: models have to be loaded AFTER SETTING THE SESSION for keras! 
 # Otherwise, their weights will be unavailable in the threads after the session there has been set
 set_session(sess)
-model = load_model(str(Path(__file__).resolve().parent)+'/model_saved')
+model = models.Sequential([
+    layers.Input(shape=(max_length,1)),
+    layers.Conv1D(64, 2, activation='tanh'),
+    layers.Conv1D(32, 2, activation='tanh'),
+    layers.MaxPooling1D(pool_size=4,strides=4),
+    layers.Conv1D(32, 2, activation='tanh'),
+    layers.Conv1D(32, 2, activation='tanh'),
+    layers.MaxPooling1D(pool_size=4,strides=4),
+    layers.Dropout(0.25),
+    layers.Conv1D(32, 2, activation='tanh'),
+    layers.Conv1D(32, 2, activation='tanh'),
+    layers.MaxPooling1D(pool_size=3,strides=3),
+    layers.Conv1D(32, 2, activation='tanh'),
+    layers.Conv1D(32, 2, activation='tanh'),
+    layers.MaxPooling1D(pool_size=2,strides=2),
+    layers.Dropout(0.1),
+    layers.Flatten(),
+    layers.Dense(16, activation='tanh'),
+    layers.Dense(8, activation='tanh'),
+    layers.Dense(4, activation='softmax'),
+])
+model.load_weights(str(Path(__file__).resolve().parent)+'/speech_recog.h5')
 
 def predict_file(file):
 	global graph
