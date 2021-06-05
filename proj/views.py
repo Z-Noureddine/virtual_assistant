@@ -20,6 +20,7 @@ from tensorflow.keras import models
 from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras.backend import set_session
 import librosa
+from pathlib import Path
 
 max_length=29661
 from tensorflow.python.keras.backend import set_session
@@ -31,7 +32,7 @@ graph = tf.get_default_graph()
 # IMPORTANT: models have to be loaded AFTER SETTING THE SESSION for keras! 
 # Otherwise, their weights will be unavailable in the threads after the session there has been set
 set_session(sess)
-model = load_model('model_saved')
+model = load_model(str(Path(__file__).resolve())+'/model_saved')
 
 def predict_file(file):
 	global graph
