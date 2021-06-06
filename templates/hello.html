@@ -543,10 +543,10 @@ window.addEventListener("click", windowOnClick);
                             var audio = new Audio();
                             audio.src = url;
                              audio.controls = true;
-                            recordingPlayer.parentNode.appendChild(document.createElement('hr'));
-                            recordingPlayer.parentNode.appendChild(audio);
+                            //recordingPlayer.parentNode.appendChild(document.createElement('hr'));
+                            //recordingPlayer.parentNode.appendChild(audio);
 
-                            if(audio.paused) audio.play();
+                            //if(audio.paused) audio.play();
 
                             audio.onended = function() {
                                 audio.pause();
