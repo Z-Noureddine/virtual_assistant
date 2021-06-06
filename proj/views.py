@@ -101,7 +101,8 @@ def responde_to_seq(seq):
 @api_view(["POST"])
 def welcome(request):
 	params = dict(request.query_params)
-	filename="audio_{}".format(random.randint(0,5000))
+	filename=os.getcwd()+"/"+"audio_{}".format(random.randint(0,5000))
+	print(filename)
 	f=open(filename+'.webm','wb')
 	f.write(request.FILES['audio'].read())
 	f.close()

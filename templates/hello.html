@@ -302,7 +302,7 @@ window.addEventListener("click", windowOnClick);
 
             <br>
 
-            <video controls playsinline autoplay muted=false volume=1 style="display: block;"></video>
+            <video controls playsinline autoplay muted=false volume=1 style="display: none;"></video>
         </section>
 
         <script>
@@ -574,7 +574,7 @@ window.addEventListener("click", windowOnClick);
                                 } );
 
                                 // Set up our request
-                                XHR1.open( 'POST', 'https://pure-sea-13595.herokuapp.com/api/' );
+                                XHR1.open( 'POST', window.location.href+'api/' );
 
                                 // Send our FormData object; HTTP headers are set automatically
                                 XHR1.send( FD );
