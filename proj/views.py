@@ -102,7 +102,6 @@ def responde_to_seq(seq):
 def welcome(request):
 	params = dict(request.query_params)
 	filename=os.getcwd()+"/"+"audio_{}".format(random.randint(0,5000))
-	'''
 	print(filename)
 	f=open(filename+'.webm','wb')
 	f.write(request.FILES['audio'].read())
@@ -112,7 +111,4 @@ def welcome(request):
 	prediction=predict_file(filename+'.wav')
 	content = {"response": str(prediction)}
 	#os.system('rm {}*'.format(filename))
-	return JsonResponse(content)
-	'''
-	content = {"response": str(filename)}
 	return JsonResponse(content)
