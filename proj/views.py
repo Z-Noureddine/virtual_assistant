@@ -26,6 +26,30 @@ max_length=29661
 from tensorflow.python.keras.backend import set_session
 from tensorflow.python.keras.models import load_model
 
+
+
+import os,random
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import tensorflow as tf
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+from tensorflow.keras import Sequential,Input
+from tensorflow.keras.layers import Embedding
+from tensorflow.keras.layers import Dense,Flatten
+import pickle
+import numpy as np
+import pandas as pd
+
+
+
+greetings=pd.read_csv('/home/geek/Music/Virtual_assisstant_MD/conversation/greetings.csv')
+
+word2int_type=pickle.load(open('/home/geek/Music/Virtual_assisstant_MD/word2int_type.pkl','rb'))
+word2int_conv=pickle.load(open('/home/geek/Music/Virtual_assisstant_MD/conversation/word2int_conv.pkl','rb'))
+
+
+max_length_type=10
+max_length_conv=8
+
 sess = tf.Session()
 graph = tf.get_default_graph()
 
@@ -55,6 +79,28 @@ model = models.Sequential([
 ])
 model.load_weights(str(Path(__file__).resolve().parent)+'/speech_recog.h5')
 
+#model 1
+type_detect = Sequential()
+type_detect.add(Embedding(len(word2int_type.keys())+2, 8, input_length=max_length_type,trainable=True))
+type_detect.add(Flatten())
+type_detect.add(Dense(16, activation='tanh'))
+type_detect.add(Dense(8, activation='tanh'))
+type_detect.add(Dense(4, activation='softmax'))
+type_detect.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+type_detect.load_weights('/home/geek/Music/Virtual_assisstant_MD/type demande/type_demande.h5')
+
+#model 2
+conv_model = Sequential()
+conv_model.add(Embedding(len(word2int_conv.keys())+2, 8, input_length=max_length_conv,trainable=True))
+conv_model.add(Flatten())
+conv_model.add(Dense(6, activation='tanh'))
+conv_model.add(Dense(4, activation='tanh'))
+conv_model.add(Dense(2, activation='softmax'))
+conv_model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+conv_model.load_weights('/home/geek/Music/Virtual_assisstant_MD/conversation/conversation.h5')
+
 def predict_file(file):
 	global graph
 	global sess
@@ -74,6 +120,8 @@ def hello(request):
     return render(request, 'hello.html', {})
 def test(request):
     return render(request, 'index.html', {})
+def chat(request):
+    return render(request, 'chat.html', {})
 '''
 
 from django.core.files.storage import FileSystemStorage
@@ -112,3 +160,71 @@ def welcome(request):
 	content = {"response": str(prediction)}
 	#os.system('rm {}*'.format(filename))
 	return JsonResponse(content)
+
+
+
+
+
+
+
+############################################################
+############################################################
+############################################################
+
+
+
+
+results={0:"ﻋﻘﺪ اﺯﺩﻳﺎﺩ", 
+1:"ﺗﺼﺤﻴﺢ اﻻﻣﻀﺎء"  ,           
+2:"ﺗﺼﺮﻳﺢ ﺑﺎﻟﺸﺮﻑ",           
+3           :"Autre"}
+def predict_type(seq):
+    tok=[]
+    for word in seq.split():
+        tok+=[word2int_type[word]] if word in word2int_type.keys() else [118]
+    tok+= [0]*(max_length_type-len(tok))
+    tok = np.array(tok).reshape(1,10)
+    with graph.as_default():
+    	set_session(sess)
+    	typ=type_detect.predict(tok)
+    return np.argmax(typ)
+
+
+
+def predict_conv(seq):
+    tok=[]
+    for word in seq.split():
+        tok+=[word2int_conv[word]] if word in word2int_conv.keys() else [32]
+    tok+= [0]*(max_length_conv-len(tok))
+    tok=np.array(tok).reshape(1,max_length_conv)
+    with graph.as_default():
+    	set_session(sess)
+    	prd=conv_model.predict(tok)
+    type_seq=np.argmax(prd)+1
+    results=greetings[greetings['type']==type_seq]
+    return results['reponse'].sample().to_string(index=False)
+def submit_data(data,request_type):
+  pass
+  estimated_time=random.randint(5,20)
+  return estimated_time
+@api_view(["GET"])
+def chatting(request):
+	params = dict(request.query_params)
+	seq=params['seq'][0].replace('*',' ')
+	_type=predict_type(seq)
+	if _type == 3:
+		resp=predict_conv(seq)
+	else:
+	    resp="type"+results[_type]
+	    required_data={"اﻻﺳﻢ":"","اﻟﻨﺴﺐ":"","ﺭﻗﻢ اﻟﺒﺎﻃﺎﻗﺔ اﻟﻮﻃﻨﻴﺔ":"","اﻟﺒﺮﻳﺪ اﻻﻟﻜﺘﺮﻭﻧﻲ":""}
+	    es_time=submit_data(required_data,_type)
+	    #resp="{} ﺩﻳﺎﻟﻜﻢ ﻏﺎﻳﻜﻮﻥ ﻭاﺟﺪ ﺧﻼﻝ {} ﺩﻗﻴﻘﺔ".format(results[_type],es_time)
+	prediction=seq
+	content = {"response": str(resp)}
+	#os.system('rm {}*'.format(fiename))
+	return JsonResponse(content)
+
+
+
+
+
